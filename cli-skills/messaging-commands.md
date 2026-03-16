@@ -12,7 +12,7 @@ Use this file for application-facing commands: app metadata, file upload, comple
 ## Minimum Commands For Common Chatflow Tasks
 
 - One-turn chat:
-  `dify --json chat send --user "$DIFY_USER" --response-mode blocking --query "<message>"`
+  `dify --json chat send --user "<user>" --response-mode blocking --query "<message>"`
 - Two-turn chat:
   run `chat send` once, extract `conversation_id` from the JSON response, then call `chat send` again with `--conversation-id`
 - Upload then chat:
@@ -171,6 +171,7 @@ Use this file for application-facing commands: app metadata, file upload, comple
 - For multi-turn chat, capture both `conversation_id` and `message_id` from the first blocking response.
 - For file-enabled app flows, prefer `files upload` plus `--file-ref` when you will reuse the same upload across multiple requests.
 - In JSON mode, streaming chat or workflow calls return line-delimited JSON events rather than a final pretty response.
+- Use explicit flags when the task provides `api_key`, `base_url`, or `user`; otherwise fall back to documented `DIFY_*` variables or config-file defaults.
 - Avoid `dify --help`, `app inspect`, and `app info` unless they change the next command you plan to run.
 
 ## Coverage

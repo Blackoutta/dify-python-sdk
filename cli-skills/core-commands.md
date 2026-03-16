@@ -49,7 +49,8 @@ Use this file for CLI-wide behavior that applies before choosing a business comm
 
 - Use `dify --json app inspect --user <user>` only when the app’s accepted custom fields, file-upload constraints, or payload shape are unknown and that information would change the command you send.
 - `app inspect` is useful for app parameters, normalized user-input fields, and file-upload hints, but it is not a default preflight step for plain text chat/completion turns.
-- In evaluator environments, the app alias is often already encoded in `DIFY_BASE_URL`, so no separate alias discovery step is needed.
+- If `DIFY_BASE_URL` or `--base-url` already points at the correct API endpoint, use it directly and avoid inventing extra routing metadata.
+- Do not infer hidden app aliases, tenant metadata, or extra identifiers unless the task or returned API data explicitly requires them.
 - If metadata is incomplete, you can still call `chat send`, `completion send`, or `workflow run` directly with explicit payloads.
 
 ## Error / Exit Guidance
