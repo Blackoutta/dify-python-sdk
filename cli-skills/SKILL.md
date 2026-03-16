@@ -38,7 +38,7 @@ Use this skill to execute the `dify` CLI with the fewest possible discovery step
 dify --json chat send --user "<user>" --response-mode blocking --query "<message>"
 ```
 
-### Two-turn chatflow
+### Multi-turn chat
 
 First turn:
 
@@ -46,15 +46,43 @@ First turn:
 ROUND_ONE_JSON=$(dify --json chat send --user "<user>" --response-mode blocking --query "<message-1>")
 ```
 
-Reuse the returned conversation:
+Follow-up turn:
 
 ```bash
 CONVERSATION_ID=$(printf '%s\n' "$ROUND_ONE_JSON" | python -c 'import json,sys; print(json.load(sys.stdin)["conversation_id"])')
 dify --json chat send --user "<user>" --response-mode blocking --conversation-id "$CONVERSATION_ID" --query "<message-2>"
 ```
 
-- Reuse `conversation_id` directly from the first JSON response.
+- Treat the snippet above as the reusable pattern for any multi-turn chat task.
+- The first successful `chat send` starts the conversation.
+- Reuse `conversation_id` directly from the latest completed JSON response for every later turn in the same task.
 - Do not fetch conversation history or app metadata unless the task requires it.
+
+## Conversation Continuity Rules
+
+- The first successful `chat send` establishes the conversation for that task.
+- Every subsequent turn must reuse the active `conversation_id` from the latest completed response.
+- Never send a fresh first-turn message again once a prior first-turn request may have succeeded.
+- Preserve returned identifiers from the latest completed response and treat them as the source of truth for the next turn.
+
+## In-Flight Request Discipline
+
+- Allow only one top-level `dify --json chat send` in flight per conversation task at a time.
+- If a blocking request is still running, wait for it to finish instead of launching another chat request as a probe, fallback, or diagnosis.
+- If the CLI prints built-in retry output, treat it as part of the same in-flight request rather than permission to send another top-level request.
+- Do not run side diagnostics that distract from an in-flight chat request unless the task is blocked before any send occurs.
+
+## Failure Handling
+
+- If a request exits cleanly with usable JSON, parse that response and continue from the identifiers it returned.
+- If a request exits non-zero before producing usable JSON, retry only that same turn and only after the prior process has fully ended.
+- If the outcome of a turn is ambiguous and success cannot be ruled out, stop and surface the ambiguity instead of sending a new message that might fork the conversation.
+
+## Anti-Patterns To Avoid
+
+- Do not issue duplicate chats or restart the conversation just because a blocking call is slow.
+- Do not split one conversation task into overlapping sends for the same turn.
+- Do not summarize success as a single conversation unless only one conversation-creating send was actually made.
 
 ### Upload then send a file
 
