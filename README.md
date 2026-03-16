@@ -10,6 +10,139 @@ First, install `dify-client` python sdk package:
 pip install dify-client
 ```
 
+## CLI
+
+`dify-client` now ships with a `dify` command for shell scripts and agent workflows.
+
+### Install the CLI
+
+Recommended:
+
+```bash
+pipx install dify-client
+```
+
+Other supported options:
+
+```bash
+uv tool install dify-client
+pip install dify-client
+```
+
+The CLI resolves settings in this order: command-line flag, environment variable, config file, built-in default.
+
+Supported environment variables:
+
+```bash
+export DIFY_API_KEY="app-xxx"
+export DIFY_BASE_URL="https://api.dify.ai/v1"
+export DIFY_USER="demo-user"
+```
+
+You can also store defaults in `~/.config/dify-client/config.json`:
+
+```json
+{
+  "api_key": "app-xxx",
+  "base_url": "https://api.dify.ai/v1",
+  "default_user": "demo-user",
+  "json_output": true
+}
+```
+
+### Inspect app inputs
+
+Use `app inspect` to fetch app parameters and normalized user input fields:
+
+```bash
+dify --api-key "$DIFY_API_KEY" --json app inspect --user "demo-user"
+```
+
+### Two-round chatflow example
+
+Round 1:
+
+```bash
+dify --api-key "$DIFY_API_KEY" --json chat send \
+  --user "demo-user" \
+  --query "Plan a 3-day trip to Kyoto" \
+  --input destination=Kyoto \
+  --input days=3
+```
+
+Example response:
+
+```json
+{
+  "answer": "Here is a 3-day Kyoto itinerary...",
+  "conversation_id": "conv_123",
+  "message_id": "msg_001"
+}
+```
+
+Round 2:
+
+```bash
+dify --api-key "$DIFY_API_KEY" --json chat send \
+  --user "demo-user" \
+  --conversation-id "conv_123" \
+  --query "Make day 2 lower budget and kid-friendly" \
+  --inputs-json '{"destination":"Kyoto","days":3,"budget":"low","travel_with_kids":true}'
+```
+
+### File upload and inline attachment
+
+Upload first and reuse the file id:
+
+```bash
+dify --api-key "$DIFY_API_KEY" --json files upload \
+  --user "demo-user" \
+  --path "./photo.png"
+```
+
+Then pass the uploaded file into chat or completion:
+
+```bash
+dify --api-key "$DIFY_API_KEY" --json chat send \
+  --user "demo-user" \
+  --query "Describe this image" \
+  --file-ref image=file_abc123
+```
+
+Or let the CLI upload during the send:
+
+```bash
+dify --api-key "$DIFY_API_KEY" --json chat send \
+  --user "demo-user" \
+  --query "Describe this image" \
+  --attach image=./photo.png
+```
+
+### Workflow and knowledge-base examples
+
+Run a workflow:
+
+```bash
+dify --api-key "$DIFY_API_KEY" --json workflow run \
+  --user "demo-user" \
+  --inputs-json '{"context":"trip planning","user_prompt":"What is the capital of France?"}'
+```
+
+List datasets:
+
+```bash
+dify --api-key "$DIFY_API_KEY" --json kb dataset list
+```
+
+Create a text document:
+
+```bash
+dify --api-key "$DIFY_API_KEY" --json kb document create-text \
+  --dataset-id "dataset_123" \
+  --name "notes.txt" \
+  --text "hello from the CLI"
+```
+
 ### Synchronous Usage
 
 Write your code with sdk:

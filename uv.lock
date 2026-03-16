@@ -526,6 +526,7 @@ source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },
     { name = "httpx", extra = ["http2"] },
+    { name = "typer" },
 ]
 
 [package.optional-dependencies]
@@ -568,6 +569,7 @@ requires-dist = [
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.21.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
     { name = "safety", marker = "extra == 'dev'", specifier = ">=2.0.0" },
+    { name = "typer", specifier = ">=0.12.5" },
 ]
 provides-extras = ["dev"]
 
